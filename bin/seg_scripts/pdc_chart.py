@@ -299,7 +299,7 @@ def writeExcel(xlsFileName):
                         tempObjLdn = temp[2][0:-2]
                         
                         if len(temp) == 4:
-                            if temp[2] == 'Ipsec=1' and temp[3][0:4] == 'VPN=':
+                            if temp[2] == 'Ipsec=1' and temp[3][0:4] == 'Vpn=':
                                 copyAAA = measTypeList[:]
                                 value = measObj.getchildren()
                                 aaaDict[temp[3]] = value
@@ -328,7 +328,7 @@ def writeExcel(xlsFileName):
                 #print ('++++++#####+++++++gtpQciDict = %s' % gtpQciDict)
                 #a is used to indicate the count of Delta 
                 a = 0
-                j = 2
+                #j = 2
                 for dictItem in tempList:
                     #print ('====dictItem.keys()[0]==sheetname===%s,%s' % (dictItem.keys()[0],sheetname))
                     record = []
@@ -411,7 +411,7 @@ def writeExcel(xlsFileName):
                                     field = field.split('--')[0]
                                     record.append(aaaValueDict.get(field))
                                     #the first pm file's datas are assigned value 0
-                                    if i ==1:
+                                    if i == 1:
                                         if aaaValueDict.has_key(field):
                                             #only one time for add field name
                                             if z == 1 and i == 1:
@@ -426,6 +426,7 @@ def writeExcel(xlsFileName):
                                         result = config.get('record','lastrecord')
                                         if aaaValueDict.has_key(field):
                                             #next data subtract last data
+                                            #print ('aaaValueDict_field %s, result_b %s' % (aaaValueDict.get(field),result[b]))
                                             temp = int(aaaValueDict.get(field)) - int(result[b])
                                             if temp < 0:
                                                 temp = 0
