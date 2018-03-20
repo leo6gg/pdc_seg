@@ -15,7 +15,7 @@ import sys
 
 
 curPath = os.getcwd()
-#curPath = '/opt/leo/pdctool20160104'
+curPath = '/opt/leo/pdctool20160104'
 
 if platform.system() == 'Windows':
     curPath = '\\\\192.168.56.101\\Leo\\pdctool20160104'
@@ -223,7 +223,6 @@ def writeExcel(xlsFileName):
             groupName = sheetname
             fields = parseCFGByUserDefined(CFGPATH, sheetname)
             fields = fields.split('\n')
-            groupName = sheetname
             
             if 'SystemManagement' in sheetname:
                 sheetname = sheetname.replace('SystemManagement','SysMgmt')
@@ -236,7 +235,7 @@ def writeExcel(xlsFileName):
         
             i = 1
             z = 1
-            y = 1
+
             #print ('collecting the %s %s data' % (groupItem,sheetname))
             #print 'fileNameList = %s' % fileNameList
             for fileName in fileNameList:
@@ -573,7 +572,7 @@ def printLog(obj):
     
 if __name__ == '__main__':
 
-#    FILEPATH = '../../../pdctool/pilotpm/'
+    FILEPATH = '../../../pdctool/pilotpm/'
     print ('Begin to collect data for epdg, please waiting...')
     for root, dirs, files in os.walk(FILEPATH):
         for fn in files:
