@@ -220,315 +220,313 @@ def writeExcel(xlsFileName):
     groupItem = "G1"
 
     for sheetname in g_ModuleGroupList:            
-            groupName = sheetname
-            fields = parseCFGByUserDefined(CFGPATH, sheetname)
-            fields = fields.split('\n')
-            
-            if 'SystemManagement' in sheetname:
-                sheetname = sheetname.replace('SystemManagement','SysMgmt')
-            
-            if len(sheetname) > 31:
-                sheetname = sheetname[0:30]    	
-            sheet = book.add_sheet(groupItem +'_'+ sheetname, cell_overwrite_ok=True)
-            sheet.write(0,0,"Group ID")
-            sheet.write(0,1,"Time")
+        groupName = sheetname
+        fields = parseCFGByUserDefined(CFGPATH, sheetname)
+        fields = fields.split('\n')
         
-            i = 1
-            z = 1
+        if 'SystemManagement' in sheetname:
+            sheetname = sheetname.replace('SystemManagement','SysMgmt')
+        
+        if len(sheetname) > 31:
+            sheetname = sheetname[0:30]    	
+        sheet = book.add_sheet(groupItem +'_'+ sheetname, cell_overwrite_ok=True)
+        sheet.write(0,0,"Group ID")
+        sheet.write(0,1,"Time")
+        
+        i = 1
+        z = 1
 
-            #print ('collecting the %s %s data' % (groupItem,sheetname))
-            #print 'fileNameList = %s' % fileNameList
-            for fileName in fileNameList:
-                #print 'Collecting the %s %s data from the %sth file --%s' % (groupItem, sheetname, i, (FILEPATH + fileName))
-                print 'Collecting the %s %s data from file --%s' % (groupItem, sheetname,(FILEPATH + fileName))
-                #Group ID
-                groupID = "G1"
-            
-                #Date
-                #nameItem = fileName.split('-')
-                nameItem = fileName.split('_')
-                tt = nameItem[0].split('.')
-                dateStr = tt[0][1:]
-                yy = dateStr[:4]
-                mm = dateStr[4:6]
-                dd = dateStr[6:8]
-                hh = tt[1][10:12]
-                MM = tt[1][12:14]
-                ss = '00'
-                if hh == '00' and MM == '00':
-                    day = datetime.datetime.strptime(yy+'-'+mm+'-'+dd+' '+hh+':'+MM+':'+ss,'%Y-%m-%d %H:%M:%S') + datetime.timedelta(days=1)
-                    date = day.strftime('%Y-%m-%d %H:%M:%S')
-                else:
-                    date = yy+'-'+mm+'-'+dd+' '+hh+':'+MM+':'+ss
-                #print('11111111111111111111111111111111111111 i = %s' % i)
-                if groupID != groupItem:
-                    continue
-                else:
-                    aaaDict = {}    # Server=xxx : values(<r p="1"></r>)
-                    aaaObjDict = {} # Module-Group : aaaDic
-                    radiusDict = {}
-                    radiusObjDict = {}
-                    sysDict = {}
-                    sysObjeDict = {}
-                    copySYS = []
-                    copyAAA = []
-                    copyRadius = []
-                    measInfos = parseXML(FILEPATH+fileName)
-                    #print '===========measTypeList==%s' % measTypeList
-                    j = 2
-                    tempdict = {}
-                    tempList = []
-                    for item in measInfos:
-                        measValueList = []
-                        measTypeList = []
-                        tempValueList = []
-                        dict = {}
-                        measInfoTmp = item.getchildren()[2:]
-                        for item1 in measInfoTmp:
-                            if valueStr.match(str(item1)):
-                                measValueList.append(item1.getchildren())
-                                tempValueList.append(item1)
+        #print ('collecting the %s %s data' % (groupItem,sheetname))
+        #print 'fileNameList = %s' % fileNameList
+        for fileName in fileNameList:
+            #print 'Collecting the %s %s data from the %sth file --%s' % (groupItem, sheetname, i, (FILEPATH + fileName))
+            print 'Collecting the %s %s data from file --%s' % (groupItem, sheetname,(FILEPATH + fileName))
+            #Group ID
+            groupID = "G1"
+        
+            #Date
+            #nameItem = fileName.split('-')
+            nameItem = fileName.split('_')
+            tt = nameItem[0].split('.')
+            dateStr = tt[0][1:]
+            yy = dateStr[:4]
+            mm = dateStr[4:6]
+            dd = dateStr[6:8]
+            hh = tt[1][10:12]
+            MM = tt[1][12:14]
+            ss = '00'
+            if hh == '00' and MM == '00':
+                day = datetime.datetime.strptime(yy+'-'+mm+'-'+dd+' '+hh+':'+MM+':'+ss,'%Y-%m-%d %H:%M:%S') + datetime.timedelta(days=1)
+                date = day.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                date = yy+'-'+mm+'-'+dd+' '+hh+':'+MM+':'+ss
+
+            if groupID != groupItem:
+                continue
+            else:
+                aaaDict = {}    # Server=xxx : values(<r p="1"></r>)
+                aaaObjDict = {} # Module-Group : aaaDic
+                radiusDict = {}
+                radiusObjDict = {}
+                sysDict = {}
+                copyAAA = []
+                copyRadius = []
+                measInfos = parseXML(FILEPATH+fileName)
+                #print '===========measTypeList==%s' % measTypeList
+                j = 2
+                tempdict = {}
+                tempList = []
+                for item in measInfos:
+                    measValueList = []
+                    measTypeList = []
+                    tempValueList = []
+                    dict = {}
+                    measInfoTmp = item.getchildren()[2:]
+                    for item1 in measInfoTmp:
+                        if valueStr.match(str(item1)):
+                            measValueList.append(item1.getchildren())
+                            tempValueList.append(item1)
+                        else:
+                            measTypeList.append(item1)
+                    #print '===========measValueList==%s' % measValueList
+
+                    tempObjLdn = ''
+
+                    for measObj in tempValueList:
+                        measObjLdn = measObj.attrib
+                        instance = measObjLdn.get('measObjLdn')
+                        temp = instance.split(',')
+                        tempObjLdn = temp[2][0:-2]
+                        
+                        if len(temp) == 4:
+                            if temp[2] == 'Ipsec=1' and temp[3][0:4] == 'VPN=':
+                                copyAAA = measTypeList[:]
+                                value = measObj.getchildren()
+                                aaaDict[temp[3]] = value
+                                aaaObjDict = {tempObjLdn:aaaDict}
+                            elif temp[0] == 'AaaInterface' and temp[1] == 'statisticsPerRadiusServer':
+                                copyRadius = measTypeList[:]
+                                value = measObj.getchildren()
+                                radiusDict[temp[3]] = value
+                                radiusObjDict = {tempObjLdn:radiusDict}
+                            elif temp[2] == 'SystemManagement=1' and temp[3][2:6] == 'CpCpu=':
+                                copySYS = measTypeList[:]
+                                value = measObj.getchildren()
+                                sysDict[temp[3]] = value
+                                sysObjDict = {tempObjLdn:sysDict}
                             else:
-                                measTypeList.append(item1)
-                        #print '===========measValueList==%s' % measValueList
+                                for item2 in measValueList[0]:
+                                    for item3 in measTypeList:
+                                        if item2.attrib.values()[0] == item3.attrib.values()[0]:
+                                            dict[item3.text] = item2.text
+                                tempdict = {tempObjLdn:dict}
+                                tempList.append(tempdict)
 
-                        tempObjLdn = ''
-
-                        for measObj in tempValueList:
-                            measObjLdn = measObj.attrib
-                            instance = measObjLdn.get('measObjLdn')
-                            temp = instance.split(',')
-                            tempObjLdn = temp[2][0:-2]
-                            
-                            if len(temp) == 4:
-                                if temp[2] == 'Ipsec=1' and temp[3][0:4] == 'VPN=':
-                                    copyAAA = measTypeList[:]
-                                    value = measObj.getchildren()
-                                    aaaDict[temp[3]] = value
-                                    aaaObjDict = {tempObjLdn:aaaDict}
-                                elif temp[0] == 'AaaInterface' and temp[1] == 'statisticsPerRadiusServer':
-                                    copyRadius = measTypeList[:]
-                                    value = measObj.getchildren()
-                                    radiusDict[temp[3]] = value
-                                    radiusObjDict = {tempObjLdn:radiusDict}
-                                elif temp[2] == 'SystemManagement=1' and temp[3][2:6] == 'CpCpu=':
-                                    copySYS = measTypeList[:]
-                                    value = measObj.getchildren()
-                                    sysDict[temp[3]] = value
-                                    sysObjDict = {tempObjLdn:sysDict}
+                    #print ('+++++++++++++dict = %s' % dict)
+                    #print ('++++++@@@@@+++++++tempdict = %s' % tempdict)
+                #print ('++++++#####+++++++tempList = %s' % tempList)
+                #print ('++++++#####+++++++gtpQciDict = %s' % gtpQciDict)
+                #a is used to indicate the count of Delta 
+                a = 0
+                j = 2
+                for dictItem in tempList:
+                    #print ('====dictItem.keys()[0]==sheetname===%s,%s' % (dictItem.keys()[0],sheetname))
+                    record = []
+                    #j=2
+                    if dictItem.keys()[0] == groupName:
+                        for field in fields:
+                            ##Delta means (current value - last value)
+                            if field == '':
+                                continue
+                            #print ('j is %d and field is %s' % (j,field))
+                            if 'Delta' in field:
+                                field = field.split('--')[0]
+                                if i == 1:
+                                    sheet.write(0,j,field)
+                                    sheet.write(i,j,(dictItem.values()[0]).get(field))
+                                    sheet.write(i,j,0)
+                                    sheet.write(i,0,groupID)
+                                    sheet.write(i,1,date)
+                                    record.append((dictItem.values()[0]).get(field))
                                 else:
-                                    for item2 in measValueList[0]:
-                                        for item3 in measTypeList:
-                                            if item2.attrib.values()[0] == item3.attrib.values()[0]:
-                                                dict[item3.text] = item2.text
-                                    tempdict = {tempObjLdn:dict}
-                                    tempList.append(tempdict)
+                                    #get the last cc data of last file
+                                    result = config.get('record','lastrecord')
+                                    #print ('aaaa--result = %s' % result)
+                                    temp = int((dictItem.values()[0]).get(field)) - int(result[a])
+                                    if temp < 0:
+                                        temp = 0
+                                    sheet.write(i,j,temp)
+                                    sheet.write(i,0,groupID)
+                                    sheet.write(i,1,date)
+                                    record.append((dictItem.values()[0]).get(field))
+                                a += 1
+                            else:
+                                if i == 1:
+                                    sheet.write(0,j,field)
+                                    sheet.write(i,j,(dictItem.values()[0]).get(field))
+                                    sheet.write(i,0,groupID)
+                                    sheet.write(i,1,date)
+                                else:
+                                    sheet.write(i,j,(dictItem.values()[0]).get(field))
+                                    sheet.write(i,0,groupID)
+                                    sheet.write(i,1,date)
+                            j += 1
 
-                        #print ('+++++++++++++dict = %s' % dict)
-                        #print ('++++++@@@@@+++++++tempdict = %s' % tempdict)
-                    #print ('++++++#####+++++++tempList = %s' % tempList)
-                    #print ('++++++#####+++++++gtpQciDict = %s' % gtpQciDict)
-                    #a is used to indicate the count of Delta 
-                    a = 0
-                    j = 2
-                    for dictItem in tempList:
-                        #print ('====dictItem.keys()[0]==sheetname===%s,%s' % (dictItem.keys()[0],sheetname))
+                if len(record) != 0:
+                    config.set('record','lastRecord',record)
+                    config.write(open(globalFile,'w'))      
+                    #print 'record = %s' % record
+
+                #data process for AAA
+                if len(aaaObjDict) != 0:
+                    if groupName == (aaaObjDict.keys()[0]): 
+                        #print ('aaaObjDict.keys()[0])[0:30]==========%s' % (aaaObjDict.keys()[0])[0:30])
+                        if i == 1:                                   
+                            sheet.write(0,2,"Instance")
+                        aaaValueDict = {}
+                        aaaItem = aaaDict.items()
+                        #print '========aaaItem= %s' % aaaItem
                         record = []
-                        #j=2
-                        if dictItem.keys()[0] == groupName:
+                        #b is used to record the number of Delta 
+                        b = 0
+                        for elem in aaaItem:           
+                            temp = list(elem)
+                            for aaavalue in temp[1]:
+                                for aaaField in copyAAA:
+                                    if aaaField.attrib.values()[0] == aaavalue.attrib.values()[0]:
+                                        aaaValueDict[aaaField.text] = aaavalue.text
+                            #print '=======aaaValueDict = %s' %  aaaValueDict           
+                            x = 3
+                            #the second column of the worksheet is "Instance"
+                            #print '=======groupID = %s' %  groupID
+                            sheet.write(z,0,groupID)
+                            sheet.write(z,1,date)
+                            sheet.write(z,2,temp[0])
+                            
+                            #get AAA data
                             for field in fields:
-                                ##Delta means (current value - last value)
-                                if field == '':
-                                    continue
-                                #print ('j is %d and field is %s' % (j,field))
+                                #print '=======field = %s' % field
                                 if 'Delta' in field:
+                                    #print ('cc field === %s' % field)
                                     field = field.split('--')[0]
-                                    if i == 1:
-                                        sheet.write(0,j,field)
-                                        sheet.write(i,j,(dictItem.values()[0]).get(field))
-                                        sheet.write(i,j,0)
-                                        sheet.write(i,0,groupID)
-                                        sheet.write(i,1,date)
-                                        record.append((dictItem.values()[0]).get(field))
-                                    else:
-                                        #get the last cc data of last file
-                                        result = config.get('record','lastrecord')
-                                        #print ('aaaa--result = %s' % result)
-                                        temp = int((dictItem.values()[0]).get(field)) - int(result[a])
-                                        if temp < 0:
-                                            temp = 0
-                                        sheet.write(i,j,temp)
-                                        sheet.write(i,0,groupID)
-                                        sheet.write(i,1,date)
-                                        record.append((dictItem.values()[0]).get(field))
-                                    a += 1
-                                else:
-                                    if i == 1:
-                                        sheet.write(0,j,field)
-                                        sheet.write(i,j,(dictItem.values()[0]).get(field))
-                                        sheet.write(i,0,groupID)
-                                        sheet.write(i,1,date)
-                                    else:
-                                        sheet.write(i,j,(dictItem.values()[0]).get(field))
-                                        sheet.write(i,0,groupID)
-                                        sheet.write(i,1,date)
-                                j += 1
-
-                    if len(record) != 0:
-                        config.set('record','lastRecord',record)
-                        config.write(open(globalFile,'w'))      
-                        #print 'record = %s' % record
-
-                    #data process for AAA
-                    if len(aaaObjDict) != 0:
-                        if groupName == (aaaObjDict.keys()[0]): 
-                            #print ('aaaObjDict.keys()[0])[0:30]==========%s' % (aaaObjDict.keys()[0])[0:30])
-                            if i == 1:                                   
-                                sheet.write(0,2,"Instance")
-                            aaaValueDict = {}
-                            aaaItem = aaaDict.items()
-                            #print '========aaaItem= %s' % aaaItem
-                            record = []
-                            #b is used to record the number of Delta 
-                            b = 0
-                            for elem in aaaItem:           
-                                temp = list(elem)
-                                for aaavalue in temp[1]:
-                                    for aaaField in copyAAA:
-                                        if aaaField.attrib.values()[0] == aaavalue.attrib.values()[0]:
-                                            aaaValueDict[aaaField.text] = aaavalue.text
-                                #print '=======aaaValueDict = %s' %  aaaValueDict           
-                                x = 3
-                                #the second column of the worksheet is "Instance"
-                                #print '=======groupID = %s' %  groupID
-                                sheet.write(z,0,groupID)
-                                sheet.write(z,1,date)
-                                sheet.write(z,2,temp[0])
-                                
-                                #get AAA data
-                                for field in fields:
-                                    #print '=======field = %s' % field
-                                    if 'Delta' in field:
-                                        #print ('cc field === %s' % field)
-                                        field = field.split('--')[0]
-                                        record.append(aaaValueDict.get(field))
-                                        #the first pm file's datas are assigned value 0
-                                        if i ==1:
-                                            if aaaValueDict.has_key(field):
-                                                #only one time for add field name
-                                                if z == 1 and i == 1:
-                                                    sheet.write(0,x,field)
-                                                    sheet.write(z,x,0)
-                                                else:
-                                                    sheet.write(z,x,0)
-                                                    
-                                            x += 1
-                                        else:
-                                            #get the last data from config file
-                                            result = config.get('record','lastrecord')
-                                            if aaaValueDict.has_key(field):
-                                                #next data subtract last data
-                                                temp = int(aaaValueDict.get(field)) - int(result[b])
-                                                if temp < 0:
-                                                    temp = 0
-                                                if z == 1 and i == 1:
-                                                    sheet.write(0,x,field)
-                                                    sheet.write(z,x,temp)
-                                                else:
-                                                    sheet.write(z,x,temp)
-                                            x += 1
-                                        b += 1    
-                                    else:
+                                    record.append(aaaValueDict.get(field))
+                                    #the first pm file's datas are assigned value 0
+                                    if i ==1:
                                         if aaaValueDict.has_key(field):
                                             #only one time for add field name
                                             if z == 1 and i == 1:
                                                 sheet.write(0,x,field)
-                                                sheet.write(z,x,aaaValueDict.get(field))
+                                                sheet.write(z,x,0)
                                             else:
-                                                sheet.write(z,x,aaaValueDict.get(field))
+                                                sheet.write(z,x,0)
+                                                
                                         x += 1
-                                z += 1
-                            #print 'record recordrecordrecordrecord= %s' % record
-                            #record the last data in config file
-                            if len(record) != 0:
-                                config.set('record','lastrecord',record)
-                                config.write(open(globalFile,'w')) 
-                    
-                    #data process for Radius
-                    if len(radiusObjDict) != 0:
-                        if groupName == (radiusObjDict.keys()[0]): 
-                            if i == 1:                                   
-                                sheet.write(0,2,"Instance")
-                            radiusValueDict = {}
-                            radiusItem = radiusDict.items()
-                            #print '========radiusItem= %s' % radiusItem
-                            record = []
-                            #b is used to record the number of Delta 
-                            b = 0
-                            for elem in radiusItem:           
-                                temp = list(elem)
-                                for radiusvalue in temp[1]:
-                                    for radiusField in copyRadius:
-                                        if radiusField.attrib.values()[0] == radiusvalue.attrib.values()[0]:
-                                            radiusValueDict[radiusField.text] = radiusvalue.text
-                                #print '=======radiusValueDict = %s' %  radiusValueDict           
-                                x = 3
-                                #the second column of the worksheet is "Instance"
-                                #print '=======groupID = %s' %  groupID
-                                sheet.write(z,0,groupID)
-                                sheet.write(z,1,date)
-                                sheet.write(z,2,temp[0])
-                                
-                                #get Radius data
-                                for field in fields:
-                                    #print '=======field = %s' % field
-                                    if 'Delta' in field:
-                                        #print ('cc field === %s' % field)
-                                        field = field.split('--')[0]
-                                        record.append(radiusValueDict.get(field))
-                                        #the first pm file's datas are assigned value 0
-                                        if i ==1:
-                                            if radiusValueDict.has_key(field):
-                                                #only one time for add field name
-                                                if z == 1 and i == 1:
-                                                    sheet.write(0,x,field)
-                                                    sheet.write(z,x,0)
-                                                else:
-                                                    sheet.write(z,x,0)
-                                                    
-                                            x += 1
-                                        else:
-                                            #get the last data from config file
-                                            result = config.get('record','lastrecord')
-                                            if radiusValueDict.has_key(field):
-                                                #next data subtract last data
-                                                temp = int(radiusValueDict.get(field)) - int(result[b])
-                                                if temp < 0:
-                                                    temp = 0
-                                                if z == 1 and i == 1:
-                                                    sheet.write(0,x,field)
-                                                    sheet.write(z,x,temp)
-                                                else:
-                                                    sheet.write(z,x,temp)
-                                            x += 1
-                                        b += 1    
                                     else:
+                                        #get the last data from config file
+                                        result = config.get('record','lastrecord')
+                                        if aaaValueDict.has_key(field):
+                                            #next data subtract last data
+                                            temp = int(aaaValueDict.get(field)) - int(result[b])
+                                            if temp < 0:
+                                                temp = 0
+                                            if z == 1 and i == 1:
+                                                sheet.write(0,x,field)
+                                                sheet.write(z,x,temp)
+                                            else:
+                                                sheet.write(z,x,temp)
+                                        x += 1
+                                    b += 1    
+                                else:
+                                    if aaaValueDict.has_key(field):
+                                        #only one time for add field name
+                                        if z == 1 and i == 1:
+                                            sheet.write(0,x,field)
+                                            sheet.write(z,x,aaaValueDict.get(field))
+                                        else:
+                                            sheet.write(z,x,aaaValueDict.get(field))
+                                    x += 1
+                            z += 1
+                        #print 'record recordrecordrecordrecord= %s' % record
+                        #record the last data in config file
+                        if len(record) != 0:
+                            config.set('record','lastrecord',record)
+                            config.write(open(globalFile,'w')) 
+                
+                #data process for Radius
+                if len(radiusObjDict) != 0:
+                    if groupName == (radiusObjDict.keys()[0]): 
+                        if i == 1:                                   
+                            sheet.write(0,2,"Instance")
+                        radiusValueDict = {}
+                        radiusItem = radiusDict.items()
+                        #print '========radiusItem= %s' % radiusItem
+                        record = []
+                        #b is used to record the number of Delta 
+                        b = 0
+                        for elem in radiusItem:           
+                            temp = list(elem)
+                            for radiusvalue in temp[1]:
+                                for radiusField in copyRadius:
+                                    if radiusField.attrib.values()[0] == radiusvalue.attrib.values()[0]:
+                                        radiusValueDict[radiusField.text] = radiusvalue.text
+                            #print '=======radiusValueDict = %s' %  radiusValueDict           
+                            x = 3
+                            #the second column of the worksheet is "Instance"
+                            #print '=======groupID = %s' %  groupID
+                            sheet.write(z,0,groupID)
+                            sheet.write(z,1,date)
+                            sheet.write(z,2,temp[0])
+                            
+                            #get Radius data
+                            for field in fields:
+                                #print '=======field = %s' % field
+                                if 'Delta' in field:
+                                    #print ('cc field === %s' % field)
+                                    field = field.split('--')[0]
+                                    record.append(radiusValueDict.get(field))
+                                    #the first pm file's datas are assigned value 0
+                                    if i ==1:
                                         if radiusValueDict.has_key(field):
                                             #only one time for add field name
                                             if z == 1 and i == 1:
                                                 sheet.write(0,x,field)
-                                                sheet.write(z,x,radiusValueDict.get(field))
+                                                sheet.write(z,x,0)
                                             else:
-                                                sheet.write(z,x,radiusValueDict.get(field))
+                                                sheet.write(z,x,0)
+                                                
                                         x += 1
-                                z += 1
-                            #print 'record recordrecordrecordrecord= %s' % record
-                            #record the last data in config file
-                            if len(record) != 0:
-                                config.set('record','lastrecord',record)
-                                config.write(open(globalFile,'w'))
-                        
-            i += 1
+                                    else:
+                                        #get the last data from config file
+                                        result = config.get('record','lastrecord')
+                                        if radiusValueDict.has_key(field):
+                                            #next data subtract last data
+                                            temp = int(radiusValueDict.get(field)) - int(result[b])
+                                            if temp < 0:
+                                                temp = 0
+                                            if z == 1 and i == 1:
+                                                sheet.write(0,x,field)
+                                                sheet.write(z,x,temp)
+                                            else:
+                                                sheet.write(z,x,temp)
+                                        x += 1
+                                    b += 1    
+                                else:
+                                    if radiusValueDict.has_key(field):
+                                        #only one time for add field name
+                                        if z == 1 and i == 1:
+                                            sheet.write(0,x,field)
+                                            sheet.write(z,x,radiusValueDict.get(field))
+                                        else:
+                                            sheet.write(z,x,radiusValueDict.get(field))
+                                    x += 1
+                            z += 1
+                        #print 'record recordrecordrecordrecord= %s' % record
+                        #record the last data in config file
+                        if len(record) != 0:
+                            config.set('record','lastrecord',record)
+                            config.write(open(globalFile,'w'))
+                    
+                i += 1
     book.save(xlsFileName) 
 
 #############################################################
