@@ -351,8 +351,7 @@ def writeExcel(xlsFileName):
                                     record.append((dictItem.values()[0]).get(field))
                                 else:
                                     #get the last cc data of last file
-                                    result = config.get('record','lastrecord')
-                                    #print ('aaaa--result = %s' % result)
+                                    result = config.get('record','lastrecord')                                    
                                     print ('aaaa--result = %s %s' % ((dictItem.values()[0]).get(field), result[a]))
                                     temp = int((dictItem.values()[0]).get(field)) - int(result[a])
                                     if temp < 0:
