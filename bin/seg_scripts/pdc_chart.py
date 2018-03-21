@@ -31,6 +31,7 @@ else:
 config = ConfigParser.ConfigParser()
 config.readfp(open(globalFile,'rb'))
 FILEPATH = config.get("global","pmFilePath")
+FILEPATH = '/opt/leo/pdctool/pilotpm/'
 
 print ('FILEPATH is %s' % FILEPATH)
 if FILEPATH == '':
@@ -314,13 +315,13 @@ def writeExcel(xlsFileName):
                                 value = measObj.getchildren()
                                 sysDict[temp[3]] = value
                                 sysObjDict = {tempObjLdn:sysDict}
-                            else:
-                                for item2 in measValueList[0]:
-                                    for item3 in measTypeList:
-                                        if item2.attrib.values()[0] == item3.attrib.values()[0]:
-                                            dict[item3.text] = item2.text
-                                tempdict = {tempObjLdn:dict}
-                                tempList.append(tempdict)
+                        else:
+                            for item2 in measValueList[0]:
+                                for item3 in measTypeList:
+                                    if item2.attrib.values()[0] == item3.attrib.values()[0]:
+                                        dict[item3.text] = item2.text
+                            tempdict = {tempObjLdn:dict}
+                            tempList.append(tempdict)
 
                     #print ('+++++++++++++dict = %s' % dict)
                     #print ('++++++@@@@@+++++++tempdict = %s' % tempdict)
@@ -352,6 +353,7 @@ def writeExcel(xlsFileName):
                                     #get the last cc data of last file
                                     result = config.get('record','lastrecord')
                                     #print ('aaaa--result = %s' % result)
+                                    print ('aaaa--result = %s %s' % ((dictItem.values()[0]).get(field), result[a]))
                                     temp = int((dictItem.values()[0]).get(field)) - int(result[a])
                                     if temp < 0:
                                         temp = 0
@@ -571,7 +573,7 @@ def printLog(obj):
     
 if __name__ == '__main__':
 
-    FILEPATH = '../../../pdctool/pilotpm/'
+#    FILEPATH = '../../../pdctool/pilotpm/'
     print ('Begin to collect data for epdg, please waiting...')
     for root, dirs, files in os.walk(FILEPATH):
         for fn in files:
