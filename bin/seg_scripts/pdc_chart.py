@@ -28,7 +28,7 @@ else:
     outputPath = curPath + '/output/seg_data/'
     endlineLable = "\n"   # row tag for linux
     globalFile = configPath + 'global.cfg'
-config = ConfigParser.ConfigParser()
+config = ConfigParser.RawConfigParser()
 config.readfp(open(globalFile,'rb'))
 FILEPATH = config.get("global","pmFilePath")
 FILEPATH = '/opt/leo/pdctool/pilotpm/'
@@ -155,6 +155,14 @@ def getPlatformAndSection (cfgFile):
     g_ModuleGroupList = []
     for k in var1.items():
         g_ModuleGroupList.append(k[0])
+###########################################
+#convert string to list
+###########################################
+def convert_str_list(liststr):
+    cleanstr = liststr[1:-1]
+    cleanstr = cleanstr.replace("\'","")
+    cleanstr = cleanstr.replace(" ","")
+    return cleanstr.split(",")
 
 
 ###########################################
@@ -351,8 +359,9 @@ def writeExcel(xlsFileName):
                                     record.append((dictItem.values()[0]).get(field))
                                 else:
                                     #get the last cc data of last file
-                                    result = config.get('record','lastrecord')                                    
-                                    print ('aaaa--result = %s %s' % ((dictItem.values()[0]).get(field), result[a]))
+                                    result = config.get('record','lastrecord')
+                                    result = convert_str_list(result)
+                                    print ('aaaa--result = %s %s %d' % ((dictItem.values()[0]).get(field), result[a], len(result)))
                                     temp = int((dictItem.values()[0]).get(field)) - int(result[a])
                                     if temp < 0:
                                         temp = 0
@@ -527,7 +536,6 @@ def writeExcel(xlsFileName):
                         if len(record) != 0:
                             config.set('record','lastrecord',record)
                             config.write(open(globalFile,'w'))
-                    
                 i += 1
     book.save(xlsFileName) 
 
